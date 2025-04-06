@@ -16,6 +16,11 @@ The gateway includes the following security features:
 - Counter reset on successful login
 - Protection against brute force attacks
 
+### Registration Protection
+- Automatic IP blocking after 5 successful registrations per hour
+- Block duration: 1 hour
+- Protection against mass account creation
+
 ### Redis Integration
 - Distributed storage of blocked IP addresses data
 - Real-time tracking of request counts

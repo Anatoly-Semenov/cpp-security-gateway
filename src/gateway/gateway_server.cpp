@@ -67,6 +67,18 @@ void GatewayServer::SetupRoutes() {
         .methods("POST"_method)
         ([this](const crow::request& req) {
             try {
+                auto& redis = security::RedisClient::getInstance();
+                std::string ip = req.remote_ip;
+
+                int registration_count = redis.getRequestCount(ip, "/api/v1/auth/register", 3600);
+                if (registration_count >= 5) {
+                    spdlog::warn("IP {} blocked due to too many registration attempts", ip);
+                    return crow::response(403, nlohmann::json{
+                        {"success", false},
+                        {"error_message", "Too many registration attempts. IP blocked for 1 hour."}
+                    }.dump());
+                }
+
                 auto json = nlohmann::json::parse(req.body);
 
                 users::RegisterRequest request;
@@ -76,6 +88,10 @@ void GatewayServer::SetupRoutes() {
 
                 services::UsersService users_service(users_lb_);
                 auto response = users_service.Register(request);
+
+                if (response.success()) {
+                    redis.incrementRequestCount(ip, "/api/v1/auth/register", 3600);
+                }
 
                 nlohmann::json result = {
                     {"success", response.success()},
