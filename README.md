@@ -10,6 +10,12 @@ The gateway includes the following security features:
 - Customizable limits for different API endpoints
 - Automatic blocking of IP addresses that exceed limits
 
+### Login Protection
+- Automatic IP blocking after 15 failed login attempts
+- Block duration: 1 hour
+- Counter reset on successful login
+- Protection against brute force attacks
+
 ### Redis Integration
 - Distributed storage of blocked IP addresses data
 - Real-time tracking of request counts

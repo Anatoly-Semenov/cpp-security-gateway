@@ -96,6 +96,18 @@ void GatewayServer::SetupRoutes() {
         .methods("POST"_method)
         ([this](const crow::request& req) {
             try {
+                auto& redis = security::RedisClient::getInstance();
+                std::string ip = req.remote_ip;
+
+                int failed_attempts = redis.getFailedLoginAttempts(ip);
+                if (failed_attempts >= 15) {
+                    spdlog::warn("IP {} blocked due to too many failed login attempts", ip);
+                    return crow::response(403, nlohmann::json{
+                        {"success", false},
+                        {"error_message", "Too many failed login attempts. IP blocked for 1 hour."}
+                    }.dump());
+                }
+
                 auto json = nlohmann::json::parse(req.body);
                 
                 users::LoginRequest request;
@@ -105,15 +117,27 @@ void GatewayServer::SetupRoutes() {
                 services::UsersService users_service(users_lb_);
                 auto response = users_service.Login(request);
                 
+                if (!response.success()) {
+                    redis.incrementFailedLoginAttempts(ip);
+                    
+                    nlohmann::json result = {
+                        {"success", false},
+                        {"error_message", response.error_message()}
+                    };
+                    
+                    return crow::response(401, result.dump());
+                }
+
+                redis.resetFailedLoginAttempts(ip);
+                
                 nlohmann::json result = {
-                    {"success", response.success()},
+                    {"success", true},
                     {"user_id", response.user_id()},
                     {"access_token", response.access_token()},
-                    {"refresh_token", response.refresh_token()},
-                    {"error_message", response.error_message()}
+                    {"refresh_token", response.refresh_token()}
                 };
                 
-                return crow::response(response.success() ? 200 : 401, result.dump());
+                return crow::response(200, result.dump());
             } catch (const std::exception& e) {
                 spdlog::error("Failed to process login request: {}", e.what());
                 return crow::response(400, nlohmann::json{{"success", false}, {"error_message", e.what()}}.dump());

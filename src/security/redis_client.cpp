@@ -157,4 +157,57 @@ std::string RedisClient::getRequestCountKey(const std::string& ip, const std::st
     return "rate_limit:" + ip + ":" + endpoint + ":" + std::to_string(windowSeconds);
 }
 
+bool RedisClient::incrementFailedLoginAttempts(const std::string& ip) {
+    if (!connected_) {
+        return false;
+    }
+    
+    try {
+        std::string key = getFailedLoginAttemptsKey(ip);
+        redis_->incr(key);
+        redis_->expire(key, std::chrono::seconds(3600));
+        return true;
+    } catch (const std::exception& e) {
+        spdlog::error("Error incrementing failed login attempts: {}", e.what());
+        return false;
+    }
+}
+
+int RedisClient::getFailedLoginAttempts(const std::string& ip) {
+    if (!connected_) {
+        return 0;
+    }
+    
+    try {
+        std::string key = getFailedLoginAttemptsKey(ip);
+        auto value = redis_->get(key);
+        
+        if (value) {
+            return std::stoi(*value);
+        }
+        
+        return 0;
+    } catch (const std::exception& e) {
+        spdlog::error("Error getting failed login attempts: {}", e.what());
+        return 0;
+    }
+}
+
+void RedisClient::resetFailedLoginAttempts(const std::string& ip) {
+    if (!connected_) {
+        return;
+    }
+    
+    try {
+        std::string key = getFailedLoginAttemptsKey(ip);
+        redis_->del(key);
+    } catch (const std::exception& e) {
+        spdlog::error("Error resetting failed login attempts: {}", e.what());
+    }
+}
+
+std::string RedisClient::getFailedLoginAttemptsKey(const std::string& ip) {
+    return "failed_login:" + ip;
+}
+
 }
