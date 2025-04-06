@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package balance;
+
+service BalanceService {
+  rpc DecreaseBalance(DecreaseBalanceRequest) returns (BalanceResponse);
+  rpc IncreaseBalance(IncreaseBalanceRequest) returns (BalanceResponse);
+  rpc GetBalance(GetBalanceRequest) returns (BalanceResponse);
+}
+
+message DecreaseBalanceRequest {
+  string user_id = 1;
+  double amount = 2;
+  string transaction_id = 3;
+  string description = 4;
+}
+
+message IncreaseBalanceRequest {
+  string user_id = 1;
+  double amount = 2;
+  string transaction_id = 3;
+  string description = 4;
+}
+
+message GetBalanceRequest {
+  string user_id = 1;
+}
+
+message BalanceResponse {
+  bool success = 1;
+  double balance = 2;
+  string transaction_id = 3;
+  string error_message = 4;
+} 
