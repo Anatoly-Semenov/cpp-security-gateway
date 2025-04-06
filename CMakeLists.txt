@@ -76,6 +76,7 @@ set(SOURCES
     src/security/redis_client.cpp
     src/security/ddos_protection.cpp
     src/security/blacklist_manager.cpp
+    src/config/environment.cpp
     ${PROTO_GENERATED_FILES}
 )
 
@@ -91,6 +92,7 @@ set(HEADERS
     include/security/redis_client.hpp
     include/security/ddos_protection.hpp
     include/security/blacklist_manager.hpp
+    include/config/environment.hpp
 )
 
 # Создаем исполняемый файл

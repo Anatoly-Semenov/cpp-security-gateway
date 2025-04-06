@@ -1,4 +1,5 @@
 #include "gateway/gateway_server.hpp"
+#include "config/environment.hpp"
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 #include "security/ddos_protection.hpp"
@@ -19,14 +20,10 @@ GatewayServer::GatewayServer(
     balance_lb_ = std::make_unique<LoadBalancer>(balance_addresses);
     payments_lb_ = std::make_unique<LoadBalancer>(payments_addresses);
 
-    const char* redis_host = std::getenv("REDIS_HOST");
-    const char* redis_port_str = std::getenv("REDIS_PORT");
-    
-    std::string host = redis_host ? redis_host : "localhost";
-    int port = redis_port_str ? std::stoi(redis_port_str) : 6379;
-    
+    auto& env = config::Environment::getInstance();
     auto& redis = security::RedisClient::getInstance();
-    if (!redis.init(host, port)) {
+    
+    if (!redis.init(env.getRedisHost(), env.getRedisPort())) {
         spdlog::error("Failed to initialize Redis client");
     } else {
         spdlog::info("Redis client initialized successfully");
