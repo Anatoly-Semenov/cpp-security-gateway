@@ -12,6 +12,8 @@ find_package(Boost REQUIRED COMPONENTS system thread)
 find_package(nlohmann_json REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(OpenTelemetry REQUIRED)
+find_package(redis++ REQUIRED)
+find_package(hiredis REQUIRED)
 
 # Генерация кода из Proto файлов
 set(PROTO_FILES
@@ -71,6 +73,7 @@ set(SOURCES
     src/services/users_service.cpp
     src/services/balance_service.cpp
     src/services/payments_service.cpp
+    src/security/redis_client.cpp
     ${PROTO_GENERATED_FILES}
 )
 
@@ -83,6 +86,7 @@ set(HEADERS
     include/services/users_service.hpp
     include/services/balance_service.hpp
     include/services/payments_service.hpp
+    include/security/redis_client.hpp
 )
 
 # Создаем исполняемый файл
@@ -107,4 +111,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
     nlohmann_json::nlohmann_json
     spdlog::spdlog
     OpenTelemetry::opentelemetry
+    redis++::redis++
+    hiredis::hiredis
 ) 

@@ -39,6 +39,19 @@ RUN git clone https://github.com/CrowCpp/Crow.git /tmp/crow && \
     cmake .. && \
     make && make install
 
+# Скачиваем и устанавливаем hiredis
+RUN git clone https://github.com/redis/hiredis.git /tmp/hiredis && \
+    cd /tmp/hiredis && \
+    make && make install && \
+    ldconfig
+
+# Скачиваем и устанавливаем redis-plus-plus
+RUN git clone https://github.com/sewenew/redis-plus-plus.git /tmp/redis-plus-plus && \
+    cd /tmp/redis-plus-plus && \
+    mkdir build && cd build && \
+    cmake -DREDIS_PLUS_PLUS_CXX_STANDARD=17 .. && \
+    make && make install
+
 # Настраиваем и собираем проект
 RUN mkdir -p build && cd build && \
     cmake .. && \
@@ -61,6 +74,11 @@ RUN apt-get update && apt-get install -y \
 
 # Копируем собранное приложение из образа-билдера
 COPY --from=builder /app/build/grpc_gateway /usr/local/bin/grpc_gateway
+COPY --from=builder /usr/local/lib/libhiredis* /usr/local/lib/
+COPY --from=builder /usr/local/lib/libredis++* /usr/local/lib/
+
+# Обновляем кеш библиотек
+RUN ldconfig
 
 # Открываем порт для HTTP
 EXPOSE 8080

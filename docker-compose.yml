@@ -12,9 +12,27 @@ services:
       - USERS_SERVICE_ADDRESSES=users-service-1:50051,users-service-2:50051
       - BALANCE_SERVICE_ADDRESSES=balance-service-1:50051,balance-service-2:50051
       - PAYMENTS_SERVICE_ADDRESSES=payments-service-1:50051,payments-service-2:50051
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    volumes:
+      - ./blacklist.txt:/etc/grpc_gateway/blacklist.txt
     networks:
       - grpc_network
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - grpc_network
+    volumes:
+      - redis_data:/data
 
 networks:
   grpc_network:
-    driver: bridge 
+    driver: bridge
+
+volumes:
+  redis_data: 
