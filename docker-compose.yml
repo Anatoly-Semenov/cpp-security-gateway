@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  grpc_gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    environment:
+      - USERS_SERVICE_ADDRESSES=users-service-1:50051,users-service-2:50051
+      - BALANCE_SERVICE_ADDRESSES=balance-service-1:50051,balance-service-2:50051
+      - PAYMENTS_SERVICE_ADDRESSES=payments-service-1:50051,payments-service-2:50051
+    networks:
+      - grpc_network
+
+networks:
+  grpc_network:
+    driver: bridge 

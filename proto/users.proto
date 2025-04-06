@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package users;
+
+service UsersService {
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc RefreshToken(RefreshTokenRequest) returns (RefreshTokenResponse);
+  rpc ResetPassword(ResetPasswordRequest) returns (ResetPasswordResponse);
+}
+
+message RegisterRequest {
+  string username = 1;
+  string email = 2;
+  string password = 3;
+}
+
+message RegisterResponse {
+  bool success = 1;
+  string user_id = 2;
+  string access_token = 3;
+  string refresh_token = 4;
+  string error_message = 5;
+}
+
+message LoginRequest {
+  string username_or_email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  bool success = 1;
+  string user_id = 2;
+  string access_token = 3;
+  string refresh_token = 4;
+  string error_message = 5;
+}
+
+message RefreshTokenRequest {
+  string refresh_token = 1;
+}
+
+message RefreshTokenResponse {
+  bool success = 1;
+  string access_token = 2;
+  string refresh_token = 3;
+  string error_message = 4;
+}
+
+message ResetPasswordRequest {
+  string email = 1;
+}
+
+message ResetPasswordResponse {
+  bool success = 1;
+  string error_message = 2;
+}

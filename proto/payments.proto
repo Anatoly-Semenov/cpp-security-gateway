@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package payments;
+
+service PaymentsService {
+  rpc CreatePaymentGateway(CreatePaymentGatewayRequest) returns (CreatePaymentGatewayResponse);
+
+  rpc CheckPaymentStatus(CheckPaymentStatusRequest) returns (CheckPaymentStatusResponse);
+
+  rpc ProcessPayment(ProcessPaymentRequest) returns (ProcessPaymentResponse);
+}
+
+message CreatePaymentGatewayRequest {
+  string user_id = 1;
+  double amount = 2;
+  string currency = 3;
+  string description = 4;
+  string return_url = 5;
+  string cancel_url = 6;
+}
+
+message CreatePaymentGatewayResponse {
+  bool success = 1;
+  string payment_id = 2;
+  string payment_url = 3;
+  string error_message = 4;
+}
+
+message CheckPaymentStatusRequest {
+  string payment_id = 1;
+}
+
+message CheckPaymentStatusResponse {
+  bool success = 1;
+  enum PaymentStatus {
+    PENDING = 0;
+    COMPLETED = 1;
+    FAILED = 2;
+    CANCELLED = 3;
+  }
+  PaymentStatus status = 2;
+  string error_message = 3;
+}
+
+message ProcessPaymentRequest {
+  string payment_id = 1;
+  string payment_data = 2;
+}
+
+message ProcessPaymentResponse {
+  bool success = 1;
+  string transaction_id = 2;
+  string error_message = 3;
+} 
