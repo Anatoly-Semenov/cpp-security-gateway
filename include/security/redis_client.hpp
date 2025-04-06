@@ -23,6 +23,10 @@ public:
     int getRequestCount(const std::string& ip, const std::string& endpoint, int windowSeconds = 60);
     void resetRequestCount(const std::string& ip, const std::string& endpoint);
 
+    bool incrementFailedLoginAttempts(const std::string& ip);
+    int getFailedLoginAttempts(const std::string& ip);
+    void resetFailedLoginAttempts(const std::string& ip);
+
 private:
     RedisClient();
     ~RedisClient();
@@ -36,6 +40,7 @@ private:
 
     std::string getBlacklistKey(const std::string& ip);
     std::string getRequestCountKey(const std::string& ip, const std::string& endpoint, int windowSeconds);
+    std::string getFailedLoginAttemptsKey(const std::string& ip);
 };
 
 }
