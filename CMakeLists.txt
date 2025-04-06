@@ -74,6 +74,8 @@ set(SOURCES
     src/services/balance_service.cpp
     src/services/payments_service.cpp
     src/security/redis_client.cpp
+    src/security/ddos_protection.cpp
+    src/security/blacklist_manager.cpp
     ${PROTO_GENERATED_FILES}
 )
 
@@ -87,6 +89,8 @@ set(HEADERS
     include/services/balance_service.hpp
     include/services/payments_service.hpp
     include/security/redis_client.hpp
+    include/security/ddos_protection.hpp
+    include/security/blacklist_manager.hpp
 )
 
 # Создаем исполняемый файл

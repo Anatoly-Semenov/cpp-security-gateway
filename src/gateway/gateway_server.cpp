@@ -1,6 +1,9 @@
 #include "gateway/gateway_server.hpp"
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
+#include "security/ddos_protection.hpp"
+#include "security/blacklist_manager.hpp"
+#include "security/redis_client.hpp"
 
 namespace gateway {
 
@@ -15,12 +18,37 @@ GatewayServer::GatewayServer(
     users_lb_ = std::make_unique<LoadBalancer>(users_addresses);
     balance_lb_ = std::make_unique<LoadBalancer>(balance_addresses);
     payments_lb_ = std::make_unique<LoadBalancer>(payments_addresses);
+
+    const char* redis_host = std::getenv("REDIS_HOST");
+    const char* redis_port_str = std::getenv("REDIS_PORT");
+    
+    std::string host = redis_host ? redis_host : "localhost";
+    int port = redis_port_str ? std::stoi(redis_port_str) : 6379;
+    
+    auto& redis = security::RedisClient::getInstance();
+    if (!redis.init(host, port)) {
+        spdlog::error("Failed to initialize Redis client");
+    } else {
+        spdlog::info("Redis client initialized successfully");
+    }
+
+    auto& ddos_protection = security::DDoSProtection::getInstance();
+    ddos_protection.init();
+
+    auto& blacklist_manager = security::BlacklistManager::getInstance();
+    try {
+        blacklist_manager.loadPredefinedBlacklist("/etc/grpc_gateway/blacklist.txt");
+    } catch (const std::exception& e) {
+        spdlog::warn("Failed to load predefined blacklist: {}", e.what());
+    }
     
     SetupMiddleware();
     SetupRoutes();
 }
 
 void GatewayServer::SetupMiddleware() {
+    security::DDoSProtection::getInstance().setupMiddleware(*app_);
+    
     app_->after_handle([](const crow::response& res) {
         spdlog::info("Response status: {}", res.code);
         return res;
@@ -33,6 +61,8 @@ void GatewayServer::SetupMiddleware() {
 }
 
 void GatewayServer::SetupRoutes() {
+    security::BlacklistManager::getInstance().setupAPI(*app_);
+
     CROW_ROUTE(app_->handle, "/api/v1/auth/register")
         .methods("POST"_method)
         ([this](const crow::request& req) {
